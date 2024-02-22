@@ -65,3 +65,4 @@ crashlytics-build.properties
 /[Pp]ackages/Async-Connector/
 /[Pp]ackages/GoodHub-Core/
 
+ProjectSettings/Packages/com.unity.testtools.codecoverage

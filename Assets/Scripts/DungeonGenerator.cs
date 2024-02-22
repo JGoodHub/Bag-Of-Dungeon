@@ -8,6 +8,7 @@ using Random = UnityEngine.Random;
 public class DungeonGenerator : MonoBehaviour
 {
     [SerializeField] private int _seed;
+    [SerializeField] private AnimationCurve _compactnessCurve;
     [SerializeField] private TileBag _tileBag;
     [Space]
     [SerializeField] private Transform _tilesContainer;
@@ -31,17 +32,18 @@ public class DungeonGenerator : MonoBehaviour
 
         _dungeon = GenerateDungeonInstanceFromBag(_tileBag);
 
-        List<DungeonTile> shortestPath = _dungeon.Pathfinding.GetShortestPath(_dungeon.GetStartTile(), _dungeon.GetRandomTile());
-
-        for (int i = 0; i < shortestPath.Count - 1; i++)
-        {
-            Debug.DrawLine(shortestPath[i].transform.position + Vector3.up, shortestPath[i + 1].transform.position + Vector3.up, Color.red, 50f);
-        }
+        // List<DungeonTile> shortestPath = _dungeon.Pathfinding.GetShortestPath(_dungeon.GetStartTile(), _dungeon.GetRandomTile());
+        //
+        // for (int i = 0; i < shortestPath.Count - 1; i++)
+        // {
+        //     Debug.DrawLine(shortestPath[i].transform.position + Vector3.up, shortestPath[i + 1].transform.position + Vector3.up, Color.red, 50f);
+        // }
     }
 
     private Dungeon GenerateDungeonInstanceFromBag(TileBag bag)
     {
         // Create the instance object
+
         GameObject dungeonInstanceObject = new GameObject("DungeonInstance");
         Dungeon dungeon = dungeonInstanceObject.AddComponent<Dungeon>();
 
@@ -49,6 +51,7 @@ public class DungeonGenerator : MonoBehaviour
 
         GameObject startTilePrefab = GetPrefabForTileType(TileBag.TileType.Start);
         DungeonTile startDungeonTile = Instantiate(startTilePrefab, Vector3.zero, Quaternion.identity, _tilesContainer).GetComponent<DungeonTile>();
+        startDungeonTile.transform.rotation = Quaternion.Euler(0, -90, 0);
 
         List<Vector3Int> occupiedSpaces = new List<Vector3Int> {Vector3Int.zero};
         List<DungeonTile> edgeTiles = new List<DungeonTile> {startDungeonTile};
@@ -56,7 +59,7 @@ public class DungeonGenerator : MonoBehaviour
         List<Vector3Int> availableSpaces = new List<Vector3Int>();
         availableSpaces.AddRange(startDungeonTile.GetAdjacentTilePositions(true));
 
-        List<DungeonTile> tiles = new List<DungeonTile>();
+        List<DungeonTile> tiles = new List<DungeonTile> {startDungeonTile};
 
         while (bag.IsEmpty() == false)
         {
@@ -66,14 +69,20 @@ public class DungeonGenerator : MonoBehaviour
             DungeonTile dungeonTile = Instantiate(tilePrefab, Vector3.zero, Quaternion.identity, _tilesContainer).GetComponent<DungeonTile>();
 
             // Find the most central available space (keeps the dungeon compact/circular)
-            DungeonTile mostCentralTile = edgeTiles[0];
-            foreach (DungeonTile edgeTile in edgeTiles)
-                if (edgeTile.transform.position.magnitude < mostCentralTile.transform.position.magnitude)
-                    mostCentralTile = edgeTile;
+            Vector3Int chosenSpace = availableSpaces[0];
+            float chosenSpaceDist = float.MaxValue;
 
-            List<Vector3Int> centralTileAdjacentSpaces = mostCentralTile.GetAdjacentTilePositions(true);
-            Vector3Int chosenSpace = centralTileAdjacentSpaces[Random.Range(0, centralTileAdjacentSpaces.Count)];
-            
+            foreach (Vector3Int availableSpace in availableSpaces)
+            {
+                float distToSpace = Vector3.Distance(availableSpace, Vector3Int.zero);
+
+                if (distToSpace < chosenSpaceDist)
+                {
+                    chosenSpace = availableSpace;
+                    chosenSpaceDist = distToSpace;
+                }
+            }
+
             dungeonTile.gameObject.name = $"DungeonTile_({drawnTileType} / {chosenSpace.x}, {chosenSpace.z})";
 
             // Move the tile to that space
@@ -83,43 +92,38 @@ public class DungeonGenerator : MonoBehaviour
             dungeonTile.transform.position = chosenSpace;
 
             // Find the rotation that yields the most connected sides
-            // The start tiles always faces up so we can skip this for that tile
-            if (drawnTileType == TileBag.TileType.Start)
+            List<Vector3> allOtherConnectors = new List<Vector3>();
+
+            foreach (DungeonTile tile in tiles)
             {
-                dungeonTile.transform.rotation = Quaternion.Euler(0, -90, 0);
+                allOtherConnectors.AddRange(tile.GetConnectorPositions(true));
             }
-            else
+
+            int bestRotation = 0;
+            int maxConnections = -1;
+
+            for (int r = 0; r < 4; r++)
             {
-                List<Vector3> allOtherConnectors = new List<Vector3>();
+                dungeonTile.transform.rotation = Quaternion.Euler(0, 90 * r, 0);
 
-                foreach (DungeonTile tile in tiles)
-                    allOtherConnectors.AddRange(tile.GetConnectorPositions(true));
+                List<Vector3> newTileConnectors = dungeonTile.GetConnectorPositions(true);
+                int matchingConnectors = 0;
 
-                int bestRotation = 0;
-                int maxConnections = -1;
-                for (int r = 0; r < 4; r++)
-                {
-                    dungeonTile.transform.rotation = Quaternion.Euler(0, 90 * r, 0);
+                foreach (Vector3 otherConnector in allOtherConnectors)
+                    if (newTileConnectors.Exists(newTileConnector => (newTileConnector - otherConnector).sqrMagnitude < 0.01f))
+                        matchingConnectors++;
 
-                    List<Vector3> newTileConnectors = dungeonTile.GetConnectorPositions(true);
-                    int matchingConnectors = 0;
+                if (matchingConnectors <= maxConnections)
+                    continue;
 
-                    foreach (Vector3 otherConnector in allOtherConnectors)
-                        if (newTileConnectors.Exists(newTileConnector => (newTileConnector - otherConnector).sqrMagnitude < 0.01f))
-                            matchingConnectors++;
+                bestRotation = r;
+                maxConnections = matchingConnectors;
 
-                    if (matchingConnectors <= maxConnections)
-                        continue;
-
-                    bestRotation = r;
-                    maxConnections = matchingConnectors;
-
-                    if (matchingConnectors == newTileConnectors.Count)
-                        break;
-                }
-
-                dungeonTile.transform.rotation = Quaternion.Euler(0, 90 * bestRotation, 0);
+                if (matchingConnectors == newTileConnectors.Count)
+                    break;
             }
+
+            dungeonTile.transform.rotation = Quaternion.Euler(0, 90 * bestRotation, 0);
 
             tiles.Add(dungeonTile);
 
@@ -171,31 +175,31 @@ public class DungeonGenerator : MonoBehaviour
         availableSpaces.Clear();
 
         // Hide all the tiles
-        foreach (DungeonTile tile in tiles)
-        {
-            dungeon.AddTile(tile);
-
-            if (tile.TileType != TileBag.TileType.Start)
-                tile.Hide();
-
-            // Get a list of the all the tiles connected to this one
-            List<Vector3Int> connectedTilePositions = tile.GetAdjacentTilePositions(true);
-
-            foreach (DungeonTile otherTile in tiles)
-            {
-                if (tile == otherTile)
-                    continue;
-
-                foreach (Vector3Int connectedTilePosition in connectedTilePositions)
-                {
-                    if ((otherTile.transform.position - connectedTilePosition).sqrMagnitude >= 0.01f)
-                        continue;
-
-                    tile.ConnectedTiles.Add(otherTile);
-                    break;
-                }
-            }
-        }
+        // foreach (DungeonTile tile in tiles)
+        // {
+        //     dungeon.AddTile(tile);
+        //
+        //     if (tile.TileType != TileBag.TileType.Start)
+        //         tile.Hide();
+        //
+        //     // Get a list of the all the tiles connected to this one
+        //     List<Vector3Int> connectedTilePositions = tile.GetAdjacentTilePositions(true);
+        //
+        //     foreach (DungeonTile otherTile in tiles)
+        //     {
+        //         if (tile == otherTile)
+        //             continue;
+        //
+        //         foreach (Vector3Int connectedTilePosition in connectedTilePositions)
+        //         {
+        //             if ((otherTile.transform.position - connectedTilePosition).sqrMagnitude >= 0.01f)
+        //                 continue;
+        //
+        //             tile.ConnectedTiles.Add(otherTile);
+        //             break;
+        //         }
+        //     }
+        // }
 
         dungeon.FinaliseSetup();
 

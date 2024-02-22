@@ -10858,10 +10858,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _seed: 0
+  _compactnessCurve:
+    serializedVersion: 2
+    m_Curve: []
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
   _tileBag:
     cornerTileCount: 15
     straightTileCount: 40
-    crossTileCount: 15
+    crossTileCount: 30
   _tilesContainer: {fileID: 1389065778}
   _startTilePrefab: {fileID: 1078119893127800380, guid: 04e28bac4eac9448c96796cdd6dd3492, type: 3}
   _endTilePrefab: {fileID: 3262773420566300266, guid: f48141b8934c4455b8709e19dad94869, type: 3}

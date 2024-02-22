@@ -42,13 +42,9 @@ public class TileBag
             int indexA = Random.Range(0, _bag.Count);
             int indexB = Random.Range(0, _bag.Count);
 
-            TileType temp = _bag[indexA];
-            _bag[indexA] = _bag[indexB];
-            _bag[indexB] = temp;
+            (_bag[indexA], _bag[indexB]) = (_bag[indexB], _bag[indexA]);
         }
 
-
-        _bag.Insert(0, TileType.Start);
         _bag.Insert(Random.Range(_bag.Count / 2, _bag.Count), TileType.End);
     }
 
