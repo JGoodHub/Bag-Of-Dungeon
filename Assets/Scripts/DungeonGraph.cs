@@ -40,11 +40,11 @@ public class DungeonGraph
 public class DungeonNode
 {
     private Vector2Int _position;
-    private TileBag.TileType _tileType;
+    private DungeonTileType _tileType;
 
     public Vector2Int Position => _position;
 
-    public DungeonNode(TileBag.TileType tileType, Vector2Int position)
+    public DungeonNode(DungeonTileType tileType, Vector2Int position)
     {
         _position = position;
         _tileType = tileType;

@@ -7,34 +7,25 @@ using Random = UnityEngine.Random;
 [Serializable]
 public class TileBag
 {
-    public enum TileType
-    {
-        Start,
-        End,
-        Corner,
-        Straight,
-        Cross,
-        Cap
-    }
-
+    
     public int cornerTileCount;
     public int straightTileCount;
     public int crossTileCount;
 
-    private List<TileType> _bag;
+    private List<DungeonTileType> _bag;
 
     public void Initialise()
     {
-        _bag = new List<TileType>();
+        _bag = new List<DungeonTileType>();
 
         for (int i = 0; i < cornerTileCount; i++)
-            _bag.Add(TileType.Corner);
+            _bag.Add(DungeonTileType.Corner);
 
         for (int i = 0; i < straightTileCount; i++)
-            _bag.Add(TileType.Straight);
+            _bag.Add(DungeonTileType.Straight);
 
         for (int i = 0; i < crossTileCount; i++)
-            _bag.Add(TileType.Cross);
+            _bag.Add(DungeonTileType.Cross);
 
 
         for (int i = 0; i < _bag.Count * 10; i++)
@@ -45,20 +36,20 @@ public class TileBag
             (_bag[indexA], _bag[indexB]) = (_bag[indexB], _bag[indexA]);
         }
 
-        _bag.Insert(Random.Range(_bag.Count / 2, _bag.Count), TileType.End);
+        _bag.Insert(Random.Range(_bag.Count / 2, _bag.Count), DungeonTileType.End);
     }
 
-    public TileType DrawTile()
+    public DungeonTileType DrawTile()
     {
         if (_bag.Count == 0)
             throw new IndexOutOfRangeException();
 
-        TileType drawnTile = _bag[0];
+        DungeonTileType drawnTile = _bag[0];
         _bag.RemoveAt(0);
         return drawnTile;
     }
 
-    public TileType PeakTile()
+    public DungeonTileType PeekTile()
     {
         if (_bag.Count == 0)
             throw new IndexOutOfRangeException();

@@ -4,22 +4,26 @@ using System.Linq;
 using DG.Tweening;
 using UnityEngine;
 
-
 public class DungeonTile : MonoBehaviour
 {
-
-    [SerializeField] private TileBag.TileType _tileType;
-
+    [SerializeField] private DungeonTileType _tileType;
     [SerializeField] private List<Vector3> _connectors = new();
-
     [SerializeField] private Transform _animRoot;
 
-
+    private Vector3Int _position;
     private List<DungeonTile> _connectedTiles = new List<DungeonTile>();
+
+    public Vector3Int Position => _position;
 
     public List<DungeonTile> ConnectedTiles => _connectedTiles;
 
-    public TileBag.TileType TileType => _tileType;
+    public DungeonTileType DungeonTileType => _tileType;
+
+    public void Initialise(Vector3Int position)
+    {
+        _position = position;
+        gameObject.name = $"DungeonTile_({_tileType} / {_position.x}, {_position.z})";
+    }
 
     public void Reveal()
     {
@@ -41,7 +45,7 @@ public class DungeonTile : MonoBehaviour
         return _connectors;
     }
 
-    public List<Vector3Int> GetAdjacentTilePositions(bool worldPosition)
+    public List<Vector3Int> GetConnectedSpaces(bool worldPosition)
     {
         List<Vector3> connectors = GetConnectorPositions(false);
 
@@ -62,7 +66,7 @@ public class DungeonTile : MonoBehaviour
 
         Gizmos.color = Color.green;
 
-        foreach (Vector3 connector in GetAdjacentTilePositions(true))
+        foreach (Vector3 connector in GetConnectedSpaces(true))
         {
             Gizmos.DrawSphere(connector, 0.1f);
         }

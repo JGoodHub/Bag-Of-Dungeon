@@ -10867,7 +10867,7 @@ MonoBehaviour:
   _tileBag:
     cornerTileCount: 15
     straightTileCount: 40
-    crossTileCount: 30
+    crossTileCount: 20
   _tilesContainer: {fileID: 1389065778}
   _startTilePrefab: {fileID: 1078119893127800380, guid: 04e28bac4eac9448c96796cdd6dd3492, type: 3}
   _endTilePrefab: {fileID: 3262773420566300266, guid: f48141b8934c4455b8709e19dad94869, type: 3}
@@ -10875,6 +10875,8 @@ MonoBehaviour:
   _straightTilePrefab: {fileID: 8986124746682460532, guid: 17015cda0fb8d4e8093609f9b320806e, type: 3}
   _crossTilePrefab: {fileID: 6769075404384376760, guid: 2f002e6ad0ef247a6beef38039719a2b, type: 3}
   _capTilePrefab: {fileID: 1078119893127800380, guid: f2eb47bd224644b719bd40316ddc476f, type: 3}
+  _tiles:
+  - {fileID: 11400000, guid: 835ae4577246a09459e38fd2dbe00dc3, type: 2}
 --- !u!114 &1783206020
 MonoBehaviour:
   m_ObjectHideFlags: 0
