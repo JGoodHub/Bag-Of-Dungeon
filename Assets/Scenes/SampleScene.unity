@@ -10857,26 +10857,27 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8e15f6981c9ff4da1800c16adaa2a055, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _seed: 0
+  _seed: -1
   _compactnessCurve:
     serializedVersion: 2
     m_Curve: []
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  _tileBag:
+  _tileStack:
+    straightTileCount: 30
     cornerTileCount: 15
-    straightTileCount: 40
-    crossTileCount: 20
+    junctionTileCount: 15
+    crossTileCount: 10
   _tilesContainer: {fileID: 1389065778}
-  _startTilePrefab: {fileID: 1078119893127800380, guid: 04e28bac4eac9448c96796cdd6dd3492, type: 3}
-  _endTilePrefab: {fileID: 3262773420566300266, guid: f48141b8934c4455b8709e19dad94869, type: 3}
-  _cornerTilePrefab: {fileID: 4177978370028907402, guid: 901bb16598c9f4052a292e405b7325bb, type: 3}
-  _straightTilePrefab: {fileID: 8986124746682460532, guid: 17015cda0fb8d4e8093609f9b320806e, type: 3}
-  _crossTilePrefab: {fileID: 6769075404384376760, guid: 2f002e6ad0ef247a6beef38039719a2b, type: 3}
-  _capTilePrefab: {fileID: 1078119893127800380, guid: f2eb47bd224644b719bd40316ddc476f, type: 3}
   _tiles:
   - {fileID: 11400000, guid: 835ae4577246a09459e38fd2dbe00dc3, type: 2}
+  - {fileID: 11400000, guid: 59f46d343ed0d40ba850a637a922b3ef, type: 2}
+  - {fileID: 11400000, guid: 61d2dd89cbe4d45fca1a7230385134af, type: 2}
+  - {fileID: 11400000, guid: 1bdc2331a62a34eacab114b5ad589a13, type: 2}
+  - {fileID: 11400000, guid: 84c1c51180faf4faab7c2581e9c1b035, type: 2}
+  - {fileID: 11400000, guid: 4192fc55f9d589e41965541f7495933c, type: 2}
+  - {fileID: 11400000, guid: 6d94a95ca459d45d08907f1334fe43e2, type: 2}
 --- !u!114 &1783206020
 MonoBehaviour:
   m_ObjectHideFlags: 0
