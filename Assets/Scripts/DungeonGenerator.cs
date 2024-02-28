@@ -15,7 +15,7 @@ public class DungeonGenerator : MonoBehaviour
     [SerializeField] private Transform _tilesContainer;
     [SerializeField] private List<DungeonTileData> _tiles;
 
-    private Dungeon _dungeon;
+    private DungeonView _dungeonView;
 
     private void Start()
     {
@@ -28,9 +28,9 @@ public class DungeonGenerator : MonoBehaviour
             tile.Initialise();
         }
 
-        _dungeon = GenerateDungeonInstance(_seed, _tileStack);
+        _dungeonView = GenerateDungeonInstance(_seed, _tileStack);
 
-        // List<DungeonTile> shortestPath = _dungeon.Pathfinding.GetShortestPath(_dungeon.GetStartTile(), _dungeon.GetRandomTile());
+        // List<DungeonTile> shortestPath = _dungeonView.Pathfinding.GetShortestPath(_dungeonView.GetStartTile(), _dungeonView.GetRandomTile());
         //
         // for (int i = 0; i < shortestPath.Count - 1; i++)
         // {
@@ -38,41 +38,35 @@ public class DungeonGenerator : MonoBehaviour
         // }
     }
 
-    private Dungeon GenerateDungeonInstance(int seed, TileStack stack)
+    private DungeonView GenerateDungeonInstance(int seed, TileStack stack)
     {
         Random random = new Random(seed);
 
         // Create the instance object
 
-        GameObject dungeonInstanceObject = new GameObject("DungeonInstance");
-        Dungeon dungeon = dungeonInstanceObject.AddComponent<Dungeon>();
-
-        List<Dungeon.Cell> dungeonCells = new List<Dungeon.Cell>();
+        DungeonGraph dungeonGraph = new DungeonGraph();
 
         // Create the start tile
 
-        dungeonCells.Add(new Dungeon.Cell
+        DungeonNode startNode = new DungeonNode
         {
             TileData = GetDataForTileType(DungeonTileType.Start),
             Position = Vector3Int.zero,
             Rotation = 2
-        });
+        };
 
-        List<Vector3Int> occupiedSpaces = new List<Vector3Int> { Vector3Int.zero };
-        List<Vector3Int> availableSpaces = new List<Vector3Int>();
+        dungeonGraph.AddNode(startNode);
 
-        availableSpaces.AddRange(dungeonCells[0].GetOutputSpaces());
+        List<Vector3Int> occupiedSpaces = new List<Vector3Int> { startNode.Position };
+        List<Vector3Int> availableSpaces = new List<Vector3Int>(startNode.GetOutputSpaces());
+
+        Dictionary<DungeonNode, List<Vector3Int>> adjacencyDict = new Dictionary<DungeonNode, List<Vector3Int>>();
 
         int loopCounter = 0;
 
         while (stack.IsEmpty() == false && loopCounter++ < 1000)
         {
-            Dictionary<Dungeon.Cell, List<Vector3Int>> connectionsList = new Dictionary<Dungeon.Cell, List<Vector3Int>>();
-
-            foreach (Dungeon.Cell cell in dungeonCells)
-            {
-                connectionsList.Add(cell, cell.GetOutputSpaces());
-            }
+            adjacencyDict = GetAdjacencyDict(dungeonGraph);
 
             DungeonTileType peekedTileType = stack.PeekTile();
             DungeonTileData peekedTileData = _tiles.Find(tile => tile.TileType == peekedTileType);
@@ -83,22 +77,25 @@ public class DungeonGenerator : MonoBehaviour
 
             foreach (Vector3Int availableSpace in availableSpaces)
             {
-                byte tileInputsCode = (byte)GetTileInputsCodeForSpace(availableSpace, connectionsList);
-                byte walledInputsCode = (byte)GetWalledInputsCodeForSpace(availableSpace, occupiedSpaces, connectionsList);
+                byte tileInputsCode = (byte)GetTileInputsCodeForSpace(availableSpace, adjacencyDict);
+                byte walledInputsCode = (byte)GetWalledInputsCodeForSpace(availableSpace, occupiedSpaces, adjacencyDict);
 
                 for (int rotIndex = 0; rotIndex < 4; rotIndex++)
                 {
                     byte rotatedConnectionsCode = peekedTileData.GetRotatedOutputsCode(rotIndex);
+                    byte rotateWallOutputsCode = (byte)(~rotatedConnectionsCode & 0b0000_1111);
 
                     // This rotation doesn't connect to a tile
                     if ((rotatedConnectionsCode & tileInputsCode) == 0)
                         continue;
 
-                    // One of the drawn tile connections faces a wall
+                    // One of the drawn tile output connections faces an existing wall
                     if ((rotatedConnectionsCode & walledInputsCode) > 0)
                         continue;
 
-                    // TODO Check out walled outputs code against the spaces tile inputs to make sure we're not walling off an input
+                    // One of the drawn tiles output walls faces a input connection
+                    if ((rotateWallOutputsCode & tileInputsCode) > 0)
+                        continue;
 
                     if (validRotationsForValidSpaces.ContainsKey(availableSpace))
                     {
@@ -133,92 +130,91 @@ public class DungeonGenerator : MonoBehaviour
             {
                 float distToSpace = Vector3.Distance(validSpace, Vector3Int.zero);
 
-                if (distToSpace < chosenSpaceDist)
-                {
-                    chosenSpace = validSpace;
-                    chosenSpaceDist = distToSpace;
-                }
+                if (distToSpace <= chosenSpaceDist == false)
+                    continue;
+
+                chosenSpace = validSpace;
+                chosenSpaceDist = distToSpace;
             }
 
             // Create the tile object
             stack.PopTile();
 
-            Dungeon.Cell newDungeonCell = new Dungeon.Cell
+            DungeonNode newDungeonNode = new DungeonNode
             {
                 TileData = peekedTileData,
                 Position = chosenSpace,
                 Rotation = validRotationsForValidSpaces[chosenSpace][random.Next(0, validRotationsForValidSpaces[chosenSpace].Count)]
             };
-            
-            dungeonCells.Add(newDungeonCell);
+
+            dungeonGraph.AddNode(newDungeonNode);
 
             // Update the space lists
             availableSpaces.Remove(chosenSpace);
             occupiedSpaces.Add(chosenSpace);
 
             // Add the newly available positions (that aren't already occupied) to the search area
-            List<Vector3Int> potentialAvailablePositions = newDungeonCell.GetOutputSpaces();
+            List<Vector3Int> potentialAvailablePositions = newDungeonNode.GetOutputSpaces();
             potentialAvailablePositions.RemoveAll(potentialPosition => occupiedSpaces.Contains(potentialPosition));
             potentialAvailablePositions.RemoveAll(potentialPosition => availableSpaces.Contains(potentialPosition));
 
             availableSpaces.AddRange(potentialAvailablePositions);
         }
-        
+
+        adjacencyDict = GetAdjacencyDict(dungeonGraph);
+
         // Cap all the open corridors
         foreach (Vector3Int availableSpace in availableSpaces)
         {
-            Dictionary<Dungeon.Cell, List<Vector3Int>> connectionsList = new Dictionary<Dungeon.Cell, List<Vector3Int>>();
+            byte tileInputsCode = (byte)GetTileInputsCodeForSpace(availableSpace, adjacencyDict);
 
-            foreach (Dungeon.Cell cell in dungeonCells)
-            {
-                connectionsList.Add(cell, cell.GetOutputSpaces());
-            }
+            DungeonTileData peekedTileData = GetBestTileForInputs(tileInputsCode, out int rotation);
 
-            DungeonTileData peekedTileData = GetDataForTileType(DungeonTileType.Cap);
-            
-            byte tileInputsCode = (byte)GetTileInputsCodeForSpace(availableSpace, connectionsList);
-            byte walledInputsCode = (byte)GetWalledInputsCodeForSpace(availableSpace, occupiedSpaces, connectionsList);
-
-            int matchingRotation = 0;
-
-            for (int rotIndex = 0; rotIndex < 4; rotIndex++)
-            {
-                byte rotatedConnectionsCode = peekedTileData.GetRotatedOutputsCode(rotIndex);
-
-                // This rotation doesn't connect to a tile
-                if ((rotatedConnectionsCode & tileInputsCode) == 0)
-                    continue;
-
-                // One of the drawn tile connections faces a wall
-                if ((rotatedConnectionsCode & walledInputsCode) > 0)
-                    continue;
-
-                // TODO Check our walled outputs code against the space's tile inputs to make sure we're not walling off an input
-
-                matchingRotation = rotIndex;
-                break;
-            }
-         
-            Dungeon.Cell newDungeonCell = new Dungeon.Cell
+            DungeonNode newDungeonNode = new DungeonNode
             {
                 TileData = peekedTileData,
                 Position = availableSpace,
-                Rotation = matchingRotation
+                Rotation = rotation
             };
-            
-            dungeonCells.Add(newDungeonCell);
+
+            dungeonGraph.AddNode(newDungeonNode);
+
+            occupiedSpaces.Add(availableSpace);
         }
+
+        availableSpaces.Clear();
+        adjacencyDict = GetAdjacencyDict(dungeonGraph);
+
+        // Resolve all the edge connections in the graph
+
+        List<DungeonNode> dungeonNodes = dungeonGraph.Nodes.ToList();
+
+        foreach ((DungeonNode dungeonNode, List<Vector3Int> connectedSpaces) in adjacencyDict)
+        {
+            foreach (Vector3Int connectedSpace in connectedSpaces)
+            {
+                DungeonNode connectedNode = dungeonNodes.Find(node => node.Position == connectedSpace);
+
+                if (connectedNode == null)
+                    continue;
+
+                dungeonGraph.AddEdge(dungeonNode, connectedNode);
+            }
+        }
+
+        dungeonGraph.DebugGraph(Vector3.up);
 
         // Create all the tile game objects from the dungeon model
 
-        foreach (Dungeon.Cell cell in dungeonCells)
+        GameObject dungeonInstanceObject = new GameObject("DungeonInstance");
+        DungeonView dungeonView = dungeonInstanceObject.AddComponent<DungeonView>();
+
+        foreach (DungeonNode cell in dungeonGraph.Nodes)
         {
             GameObject tilePrefab = GetPrefabForTileType(cell.TileData.TileType);
             DungeonTile dungeonTile = Instantiate(tilePrefab, cell.Position, Quaternion.Euler(0, 90 * cell.Rotation, 0), _tilesContainer).GetComponent<DungeonTile>();
             dungeonTile.Initialise(cell.Position);
         }
-
-        availableSpaces.Clear();
 
         // Hide all the tiles
         // foreach (DungeonTile tile in tiles)
@@ -247,9 +243,21 @@ public class DungeonGenerator : MonoBehaviour
         //     }
         // }
 
-        dungeon.FinaliseSetup();
+        dungeonView.FinaliseSetup();
 
-        return dungeon;
+        return dungeonView;
+    }
+
+    public Dictionary<DungeonNode, List<Vector3Int>> GetAdjacencyDict(DungeonGraph graph)
+    {
+        Dictionary<DungeonNode, List<Vector3Int>> connectionsList = new Dictionary<DungeonNode, List<Vector3Int>>();
+
+        foreach (DungeonNode cell in graph.Nodes)
+        {
+            connectionsList.Add(cell, cell.GetOutputSpaces());
+        }
+
+        return connectionsList;
     }
 
     private DungeonTileData GetDataForTileType(DungeonTileType tileType)
@@ -295,13 +303,13 @@ public class DungeonGenerator : MonoBehaviour
     /// Returns a byte code representing which directions have a connection to another tile. <br/>
     /// E.g. 0110 (UP/RIGHT/DOWN/LEFT) means a tile to the right and a tile below have incoming connections to this one
     /// </summary>
-    private int GetTileInputsCodeForSpace(Vector3Int availableSpace, Dictionary<Dungeon.Cell, List<Vector3Int>> connectionsList)
+    private int GetTileInputsCodeForSpace(Vector3Int availableSpace, Dictionary<DungeonNode, List<Vector3Int>> adjacencyDict)
     {
         List<Vector3Int> positionsLeadingToSpace = new List<Vector3Int>();
 
-        foreach ((Dungeon.Cell cell, List<Vector3Int> connectedSpaces) in connectionsList)
+        foreach ((DungeonNode cell, List<Vector3Int> adjacentSpaces) in adjacencyDict)
         {
-            if (connectedSpaces.Contains(availableSpace))
+            if (adjacentSpaces.Contains(availableSpace))
             {
                 positionsLeadingToSpace.Add(cell.Position);
             }
@@ -326,13 +334,13 @@ public class DungeonGenerator : MonoBehaviour
     /// Returns a byte code representing which directions have a wall against this tile  <br/>
     /// E.g. 0101 (UP/RIGHT/DOWN/LEFT) means the tiles to the right and left have walls against this one.
     /// </summary>
-    private int GetWalledInputsCodeForSpace(Vector3Int availableSpace, List<Vector3Int> occupiedSpaces, Dictionary<Dungeon.Cell, List<Vector3Int>> connectionsList)
+    private int GetWalledInputsCodeForSpace(Vector3Int availableSpace, List<Vector3Int> occupiedSpaces, Dictionary<DungeonNode, List<Vector3Int>> adjacencyDict)
     {
         List<Vector3Int> positionsLeadingToSpace = new List<Vector3Int>();
 
-        foreach ((Dungeon.Cell cell, List<Vector3Int> connectedSpaces) in connectionsList)
+        foreach ((DungeonNode cell, List<Vector3Int> adjacentSpaces) in adjacencyDict)
         {
-            if (connectedSpaces.Contains(availableSpace))
+            if (adjacentSpaces.Contains(availableSpace))
             {
                 positionsLeadingToSpace.Add(cell.Position);
             }
@@ -351,6 +359,35 @@ public class DungeonGenerator : MonoBehaviour
         }
 
         return inputCode;
+    }
+
+    private DungeonTileData GetBestTileForInputs(byte connectionInputs, out int rotation)
+    {
+        List<DungeonTileType> validTypes = new List<DungeonTileType>
+        {
+            DungeonTileType.Cap,
+            DungeonTileType.Straight,
+            DungeonTileType.Corner,
+            DungeonTileType.Junction,
+            DungeonTileType.Cross
+        };
+
+        foreach (DungeonTileType tileType in validTypes)
+        {
+            DungeonTileData tileData = GetDataForTileType(tileType);
+
+            for (int rotIndex = 0; rotIndex < 4; rotIndex++)
+            {
+                if (tileData.GetRotatedOutputsCode(rotIndex) == connectionInputs)
+                {
+                    rotation = rotIndex;
+                    return tileData;
+                }
+            }
+        }
+
+        rotation = 0;
+        return null;
     }
 
 }

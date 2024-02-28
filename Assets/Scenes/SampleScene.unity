@@ -10857,7 +10857,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8e15f6981c9ff4da1800c16adaa2a055, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _seed: -1
+  _seed: 0
   _compactnessCurve:
     serializedVersion: 2
     m_Curve: []
