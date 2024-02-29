@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using GoodHub.Core.Runtime.Utils;
 using UnityEngine;
 using Random = System.Random;
 
@@ -12,10 +13,9 @@ public class DungeonGenerator : MonoBehaviour
     [SerializeField] private AnimationCurve _compactnessCurve;
     [SerializeField] private TileStack _tileStack;
     [Space]
-    [SerializeField] private Transform _tilesContainer;
     [SerializeField] private List<DungeonTileData> _tiles;
 
-    private DungeonView _dungeonView;
+    private DungeonGraph _dungeonGraph;
 
     private void Start()
     {
@@ -28,17 +28,17 @@ public class DungeonGenerator : MonoBehaviour
             tile.Initialise();
         }
 
-        _dungeonView = GenerateDungeonInstance(_seed, _tileStack);
+        _dungeonGraph = GenerateDungeonInstance(_seed, _tileStack);
 
-        // List<DungeonTile> shortestPath = _dungeonView.Pathfinding.GetShortestPath(_dungeonView.GetStartTile(), _dungeonView.GetRandomTile());
-        //
-        // for (int i = 0; i < shortestPath.Count - 1; i++)
-        // {
-        //     Debug.DrawLine(shortestPath[i].transform.position + Vector3.up, shortestPath[i + 1].transform.position + Vector3.up, Color.red, 50f);
-        // }
+        List<DungeonNode> shortestPath = _dungeonGraph.GetShortestPath(_dungeonGraph.GetStartNode(), _dungeonGraph.GetEndNode());
+
+        for (int i = 0; i < shortestPath.Count - 1; i++)
+        {
+            Debug.DrawLine(shortestPath[i].Position + Vector3.up * 0.5f, shortestPath[i + 1].Position + Vector3.up * 0.5f, Color.cyan, 5f);
+        }
     }
 
-    private DungeonView GenerateDungeonInstance(int seed, TileStack stack)
+    private DungeonGraph GenerateDungeonInstance(int seed, TileStack stack)
     {
         Random random = new Random(seed);
 
@@ -60,11 +60,9 @@ public class DungeonGenerator : MonoBehaviour
         List<Vector3Int> occupiedSpaces = new List<Vector3Int> { startNode.Position };
         List<Vector3Int> availableSpaces = new List<Vector3Int>(startNode.GetOutputSpaces());
 
-        Dictionary<DungeonNode, List<Vector3Int>> adjacencyDict = new Dictionary<DungeonNode, List<Vector3Int>>();
+        Dictionary<DungeonNode, List<Vector3Int>> adjacencyDict;
 
-        int loopCounter = 0;
-
-        while (stack.IsEmpty() == false && loopCounter++ < 1000)
+        while (stack.IsEmpty() == false)
         {
             adjacencyDict = GetAdjacencyDict(dungeonGraph);
 
@@ -82,8 +80,8 @@ public class DungeonGenerator : MonoBehaviour
 
                 for (int rotIndex = 0; rotIndex < 4; rotIndex++)
                 {
-                    byte rotatedConnectionsCode = peekedTileData.GetRotatedOutputsCode(rotIndex);
-                    byte rotateWallOutputsCode = (byte)(~rotatedConnectionsCode & 0b0000_1111);
+                    byte rotatedConnectionsCode = peekedTileData.GetRotatedOutputsCode(rotIndex); // The code representing the output connections of the tile we're placing when rotated
+                    byte rotateWallOutputsCode = (byte)(~rotatedConnectionsCode & 0b0000_1111); // The code representing the output walls of the tile we're placing when rotated, basically the invert of the above
 
                     // This rotation doesn't connect to a tile
                     if ((rotatedConnectionsCode & tileInputsCode) == 0)
@@ -120,22 +118,12 @@ public class DungeonGenerator : MonoBehaviour
                 continue;
             }
 
-            // Keep the dungeon fairly compact but not fully round
-            // Dictionary<float, Vector3Int> spacesByChooseChance = validSpaces.ToDictionary(space => _compactnessCurve.Evaluate(space.magnitude), space => space);
+            // Pick a valid space from the pool based on how compact we want the dungeon to be
 
-            Vector3Int chosenSpace = validSpaces[0];
-            float chosenSpaceDist = float.MaxValue;
+            validSpaces = validSpaces.OrderBy(space => space.magnitude).ToList();
 
-            foreach (Vector3Int validSpace in validSpaces)
-            {
-                float distToSpace = Vector3.Distance(validSpace, Vector3Int.zero);
-
-                if (distToSpace <= chosenSpaceDist == false)
-                    continue;
-
-                chosenSpace = validSpace;
-                chosenSpaceDist = distToSpace;
-            }
+            int chosenSpaceIndex = Mathf.RoundToInt(_compactnessCurve.Evaluate(random.NextFloat()) * (validSpaces.Count - 1));
+            Vector3Int chosenSpace = validSpaces[chosenSpaceIndex];
 
             // Create the tile object
             stack.PopTile();
@@ -164,6 +152,7 @@ public class DungeonGenerator : MonoBehaviour
         adjacencyDict = GetAdjacencyDict(dungeonGraph);
 
         // Cap all the open corridors
+
         foreach (Vector3Int availableSpace in availableSpaces)
         {
             byte tileInputsCode = (byte)GetTileInputsCodeForSpace(availableSpace, adjacencyDict);
@@ -202,17 +191,16 @@ public class DungeonGenerator : MonoBehaviour
             }
         }
 
-        dungeonGraph.DebugGraph(Vector3.up);
+        //dungeonGraph.DebugGraph(Vector3.up);
 
         // Create all the tile game objects from the dungeon model
 
         GameObject dungeonInstanceObject = new GameObject("DungeonInstance");
-        DungeonView dungeonView = dungeonInstanceObject.AddComponent<DungeonView>();
 
         foreach (DungeonNode cell in dungeonGraph.Nodes)
         {
-            GameObject tilePrefab = GetPrefabForTileType(cell.TileData.TileType);
-            DungeonTile dungeonTile = Instantiate(tilePrefab, cell.Position, Quaternion.Euler(0, 90 * cell.Rotation, 0), _tilesContainer).GetComponent<DungeonTile>();
+            GameObject tilePrefab = cell.TileData.TilePrefab;
+            DungeonTile dungeonTile = Instantiate(tilePrefab, cell.Position, Quaternion.Euler(0, 90 * cell.Rotation, 0), dungeonInstanceObject.transform).GetComponent<DungeonTile>();
             dungeonTile.Initialise(cell.Position);
         }
 
@@ -242,10 +230,8 @@ public class DungeonGenerator : MonoBehaviour
         //         }
         //     }
         // }
-
-        dungeonView.FinaliseSetup();
-
-        return dungeonView;
+        
+        return dungeonGraph;
     }
 
     public Dictionary<DungeonNode, List<Vector3Int>> GetAdjacencyDict(DungeonGraph graph)
@@ -268,24 +254,6 @@ public class DungeonGenerator : MonoBehaviour
     private GameObject GetPrefabForTileType(DungeonTileType tileType)
     {
         return _tiles.Find(tile => tile.TileType == tileType)?.TilePrefab;
-    }
-
-    private int GetConnectionsRequired(DungeonTileType tileType)
-    {
-        switch (tileType)
-        {
-            case DungeonTileType.Start:
-            case DungeonTileType.End:
-            case DungeonTileType.Cap:
-                return 1;
-            case DungeonTileType.Corner:
-            case DungeonTileType.Straight:
-                return 2;
-            case DungeonTileType.Cross:
-                return 4;
-        }
-
-        return 0;
     }
 
     private List<Vector3Int> GetAdjacentPositions(Vector3Int centre)

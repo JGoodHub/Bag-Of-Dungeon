@@ -10857,10 +10857,28 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8e15f6981c9ff4da1800c16adaa2a055, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _seed: 0
+  _seed: -1
   _compactnessCurve:
     serializedVersion: 2
-    m_Curve: []
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0.49300438
+      outSlope: 0.49300438
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 1
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 2.0259502
+      outSlope: 2.0259502
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.49705535
+      outWeight: 0
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
@@ -10869,7 +10887,6 @@ MonoBehaviour:
     cornerTileCount: 15
     junctionTileCount: 15
     crossTileCount: 10
-  _tilesContainer: {fileID: 1389065778}
   _tiles:
   - {fileID: 11400000, guid: 835ae4577246a09459e38fd2dbe00dc3, type: 2}
   - {fileID: 11400000, guid: 59f46d343ed0d40ba850a637a922b3ef, type: 2}
