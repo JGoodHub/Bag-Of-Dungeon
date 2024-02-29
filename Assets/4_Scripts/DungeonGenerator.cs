@@ -2,43 +2,26 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using GoodHub.Core.Runtime;
 using GoodHub.Core.Runtime.Utils;
 using UnityEngine;
 using Random = System.Random;
 
-public class DungeonGenerator : MonoBehaviour
+public class DungeonGenerator : SceneSingleton<DungeonGenerator>
 {
 
-    [SerializeField] private int _seed;
     [SerializeField] private AnimationCurve _compactnessCurve;
-    [SerializeField] private TileStack _tileStack;
-    [Space]
     [SerializeField] private List<DungeonTileData> _tiles;
 
-    private DungeonGraph _dungeonGraph;
-
-    private void Start()
+    private void Awake()
     {
-        _seed = _seed < 0 ? DateTime.Now.GetHashCode() : _seed;
-
-        _tileStack.Initialise(_seed);
-
         foreach (DungeonTileData tile in _tiles)
         {
             tile.Initialise();
         }
-
-        _dungeonGraph = GenerateDungeonInstance(_seed, _tileStack);
-
-        List<DungeonNode> shortestPath = _dungeonGraph.GetShortestPath(_dungeonGraph.GetStartNode(), _dungeonGraph.GetEndNode());
-
-        for (int i = 0; i < shortestPath.Count - 1; i++)
-        {
-            Debug.DrawLine(shortestPath[i].Position + Vector3.up * 0.5f, shortestPath[i + 1].Position + Vector3.up * 0.5f, Color.cyan, 5f);
-        }
     }
 
-    private DungeonGraph GenerateDungeonInstance(int seed, TileStack stack)
+    public DungeonGraph GenerateDungeonGraph(int seed, TileStack stack)
     {
         Random random = new Random(seed);
 
@@ -191,46 +174,6 @@ public class DungeonGenerator : MonoBehaviour
             }
         }
 
-        //dungeonGraph.DebugGraph(Vector3.up);
-
-        // Create all the tile game objects from the dungeon model
-
-        GameObject dungeonInstanceObject = new GameObject("DungeonInstance");
-
-        foreach (DungeonNode cell in dungeonGraph.Nodes)
-        {
-            GameObject tilePrefab = cell.TileData.TilePrefab;
-            DungeonTile dungeonTile = Instantiate(tilePrefab, cell.Position, Quaternion.Euler(0, 90 * cell.Rotation, 0), dungeonInstanceObject.transform).GetComponent<DungeonTile>();
-            dungeonTile.Initialise(cell.Position);
-        }
-
-        // Hide all the tiles
-        // foreach (DungeonTile tile in tiles)
-        // {
-        //     dungeon.AddTile(tile);
-        //
-        //     if (tile.DungeonTileType != TileBag.DungeonTileType.Start)
-        //         tile.Hide();
-        //
-        //     // Get a list of the all the tiles connected to this one
-        //     List<Vector3Int> connectedTilePositions = tile.GetAdjacentTilePositions(true);
-        //
-        //     foreach (DungeonTile otherTile in tiles)
-        //     {
-        //         if (tile == otherTile)
-        //             continue;
-        //
-        //         foreach (Vector3Int connectedTilePosition in connectedTilePositions)
-        //         {
-        //             if ((otherTile.transform.position - connectedTilePosition).sqrMagnitude >= 0.01f)
-        //                 continue;
-        //
-        //             tile.ConnectedTiles.Add(otherTile);
-        //             break;
-        //         }
-        //     }
-        // }
-        
         return dungeonGraph;
     }
 

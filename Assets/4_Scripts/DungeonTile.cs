@@ -9,19 +9,18 @@ public class DungeonTile : MonoBehaviour
     [SerializeField] private DungeonTileType _tileType;
     [SerializeField] private Transform _animRoot;
 
-    private Vector3Int _position;
-    private List<DungeonTile> _connectedTiles = new List<DungeonTile>();
+    private DungeonNode _node;
 
-    public Vector3Int Position => _position;
+    public DungeonNode Node => _node;
 
-    public List<DungeonTile> ConnectedTiles => _connectedTiles;
-
-    public DungeonTileType DungeonTileType => _tileType;
-
-    public void Initialise(Vector3Int position)
+    public void Initialise(DungeonNode node)
     {
-        _position = position;
-        gameObject.name = $"DungeonTile_({_tileType} / {_position.x}, {_position.z})";
+        _node = node;
+        
+        gameObject.name = $"DungeonTile_({_tileType} / {_node.Position.x}, {_node.Position.z})";
+
+        transform.position = _node.Position;
+        transform.rotation = Quaternion.Euler(0, 90 * _node.Rotation, 0);
     }
 
     public void Reveal()

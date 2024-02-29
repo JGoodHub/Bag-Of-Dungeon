@@ -1,3 +1,5 @@
+using UnityEngine;
+
 public class CharacterInstance
 {
 
@@ -7,6 +9,8 @@ public class CharacterInstance
     private int _currentHeath;
     private int _currentActionPoints;
 
+    private GameObject _characterObject;
+
     public CharacterData CharacterData => _characterData;
 
     public int CurrentLives => _currentLives;
@@ -15,6 +19,8 @@ public class CharacterInstance
 
     public int CurrentActionPoints => _currentActionPoints;
 
+    public GameObject CharacterObject => _characterObject;
+
     public CharacterInstance(CharacterData characterData)
     {
         _characterData = characterData;
@@ -22,6 +28,11 @@ public class CharacterInstance
         _currentLives = characterData.MaxLives;
         _currentHeath = characterData.MaxHeath;
         _currentActionPoints = characterData.MaxActionPoints;
+    }
+
+    public void SetCharacterObject(GameObject characterObject)
+    {
+        _characterObject = characterObject;
     }
 
 }
