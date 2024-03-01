@@ -199,16 +199,6 @@ public class DungeonGenerator : SceneSingleton<DungeonGenerator>
         return _tiles.Find(tile => tile.TileType == tileType)?.TilePrefab;
     }
 
-    private List<Vector3Int> GetAdjacentPositions(Vector3Int centre)
-    {
-        return new List<Vector3Int>
-        {
-            centre + Vector3Int.forward,
-            centre + Vector3Int.right,
-            centre + Vector3Int.back,
-            centre + Vector3Int.left
-        };
-    }
 
     /// <summary>
     /// Returns a byte code representing which directions have a connection to another tile. <br/>
@@ -228,7 +218,7 @@ public class DungeonGenerator : SceneSingleton<DungeonGenerator>
 
         byte inputCode = 0b0000_0000;
 
-        foreach (Vector3Int adjacentPosition in GetAdjacentPositions(availableSpace))
+        foreach (Vector3Int adjacentPosition in DungeonUtils.GetAdjacentPositions(availableSpace))
         {
             inputCode <<= 1;
 
@@ -259,7 +249,7 @@ public class DungeonGenerator : SceneSingleton<DungeonGenerator>
 
         byte inputCode = 0b0000_0000;
 
-        foreach (Vector3Int adjacentPosition in GetAdjacentPositions(availableSpace))
+        foreach (Vector3Int adjacentPosition in DungeonUtils.GetAdjacentPositions(availableSpace))
         {
             inputCode <<= 1;
 
@@ -299,6 +289,22 @@ public class DungeonGenerator : SceneSingleton<DungeonGenerator>
 
         rotation = 0;
         return null;
+    }
+
+}
+
+public static class DungeonUtils
+{
+
+    public static List<Vector3Int> GetAdjacentPositions(Vector3Int centre)
+    {
+        return new List<Vector3Int>
+        {
+            centre + Vector3Int.forward,
+            centre + Vector3Int.right,
+            centre + Vector3Int.back,
+            centre + Vector3Int.left
+        };
     }
 
 }

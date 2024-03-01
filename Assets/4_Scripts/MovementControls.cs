@@ -7,47 +7,35 @@ using UnityEngine;
 public class MovementControls : SceneSingleton<MovementControls>
 {
 
-    [SerializeField] private MovementHandle _upHandle;
-    [SerializeField] private MovementHandle _rightHandle;
-    [SerializeField] private MovementHandle _downHandle;
-    [SerializeField] private MovementHandle _leftHandle;
+    [SerializeField] private List<MovementHandle> _handles;
 
     private void Awake()
     {
-        _upHandle.SetCallback(HandleUpCallback);
-        _rightHandle.SetCallback(HandleRightCallback);
-        _downHandle.SetCallback(HandleDownCallback);
-        _leftHandle.SetCallback(HandleLeftCallback);
+        for (int handleIndex = 0; handleIndex < _handles.Count; handleIndex++)
+        {
+            MovementDirection movementDirection = (MovementDirection)handleIndex;
+            _handles[handleIndex].SetCallback(() =>
+            {
+                HandleDirectionCallback(movementDirection);
+            });
+        }
 
-        SetActiveHandles(false, false, false, false);
+        Setup(Vector3Int.zero, new List<bool> { false, false, false, false });
     }
 
-    public void SetActiveHandles(bool up, bool right, bool down, bool left)
+    public void Setup(Vector3Int position, List<bool> arrowStates)
     {
-        _upHandle.gameObject.SetActive(up);
-        _rightHandle.gameObject.SetActive(right);
-        _downHandle.gameObject.SetActive(down);
-        _leftHandle.gameObject.SetActive(left);
+        transform.position = position;
+
+        for (int i = 0; i < _handles.Count; i++)
+        {
+            _handles[i].gameObject.SetActive(arrowStates[i]);
+        }
     }
 
-    private void HandleUpCallback()
+    private void HandleDirectionCallback(MovementDirection direction)
     {
-        PartyController.Singleton.MoveSelectedCharacter(MovementDirection.UP);
-    }
-
-    private void HandleRightCallback()
-    {
-        PartyController.Singleton.MoveSelectedCharacter(MovementDirection.RIGHT);
-    }
-
-    private void HandleDownCallback()
-    {
-        PartyController.Singleton.MoveSelectedCharacter(MovementDirection.DOWN);
-    }
-
-    private void HandleLeftCallback()
-    {
-        PartyController.Singleton.MoveSelectedCharacter(MovementDirection.LEFT);
+        PartyController.Singleton.MoveSelectedCharacter(direction);
     }
 
 }

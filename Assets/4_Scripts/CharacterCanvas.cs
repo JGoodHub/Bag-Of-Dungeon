@@ -15,19 +15,19 @@ public class CharacterCanvas : SceneSingleton<CharacterCanvas>
     [SerializeField] private BlockTracker _healthTracker;
     [SerializeField] private BlockTracker _actionPointsTracker;
 
-    public void SetupForCharacter(CharacterInstance characterInstance)
+    public void SetupForCharacter(CharacterEntity characterEntity)
     {
-        _classText.text = characterInstance.CharacterData.Class;
+        _classText.text = characterEntity.Data.Class;
 
-        _combatDiceText.text = $"{characterInstance.CharacterData.MaxCombatDice} Dice + {characterInstance.CharacterData.MaxCombatModifier}";
+        _combatDiceText.text = $"{characterEntity.Data.MaxCombatDice} Dice + {characterEntity.Data.MaxCombatModifier}";
 
-        _livesTracker.SetActiveCount(characterInstance.CharacterData.MaxLives);
-        _healthTracker.SetActiveCount(characterInstance.CharacterData.MaxHeath);
-        _actionPointsTracker.SetActiveCount(characterInstance.CharacterData.MaxActionPoints);
+        _livesTracker.SetActiveCount(characterEntity.Data.MaxLives);
+        _healthTracker.SetActiveCount(characterEntity.Data.MaxHeath);
+        _actionPointsTracker.SetActiveCount(characterEntity.Data.MaxActionPoints);
 
-        _livesTracker.SetUncrossedCount(characterInstance.CurrentLives);
-        _healthTracker.SetUncrossedCount(characterInstance.CurrentHeath);
-        _actionPointsTracker.SetUncrossedCount(characterInstance.CurrentActionPoints);
+        _livesTracker.SetUncrossedCount(characterEntity.CurrentLives);
+        _healthTracker.SetUncrossedCount(characterEntity.CurrentHeath);
+        _actionPointsTracker.SetUncrossedCount(characterEntity.CurrentActionPoints);
     }
 
 }

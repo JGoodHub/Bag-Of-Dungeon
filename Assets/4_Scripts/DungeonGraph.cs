@@ -7,15 +7,21 @@ using Random = System.Random;
 public class DungeonGraph
 {
 
+    private Dictionary<Vector3Int, DungeonNode> _nodesByPosition = new Dictionary<Vector3Int, DungeonNode>();
     private Dictionary<DungeonNode, List<DungeonNode>> _adjacencyList = new Dictionary<DungeonNode, List<DungeonNode>>();
 
     public Dictionary<DungeonNode, List<DungeonNode>>.KeyCollection Nodes => _adjacencyList.Keys;
+
+    public Dictionary<Vector3Int, DungeonNode> NodesByPosition => _nodesByPosition;
+
+    public Dictionary<DungeonNode, List<DungeonNode>> AdjacencyList => _adjacencyList;
 
     public void AddNode(DungeonNode node)
     {
         if (_adjacencyList.ContainsKey(node))
             return;
 
+        _nodesByPosition.Add(node.Position, node);
         _adjacencyList.Add(node, new List<DungeonNode>());
     }
 
@@ -33,7 +39,7 @@ public class DungeonGraph
     {
         return Nodes.FirstOrDefault(node => node.TileData.TileType == DungeonTileType.Start);
     }
-    
+
     public DungeonNode GetEndNode()
     {
         return Nodes.FirstOrDefault(node => node.TileData.TileType == DungeonTileType.End);
@@ -142,6 +148,28 @@ public class DungeonNode
         }
 
         return outputSpaces;
+    }
+
+    public List<bool> GetConnections()
+    {
+        List<bool> connections = new List<bool>();
+        byte rotatedOutputsCode = TileData.GetRotatedOutputsCode(Rotation);
+
+        for (int rotIndex = 0; rotIndex < 4; rotIndex++)
+        {
+            if ((rotatedOutputsCode & 0b0000_1000) > 0)
+            {
+                connections.Add(true);
+            }
+            else
+            {
+                connections.Add(false);
+            }
+
+            rotatedOutputsCode <<= 1;
+        }
+
+        return connections;
     }
 
 }
