@@ -41,6 +41,8 @@ public class PartyController : SceneSingleton<PartyController>
         RevealAdjacentTilesToCharacters();
 
         RefreshMovementHandle();
+
+        CameraController.Singleton.SetTrackingTarget(_characterEntities[0].CharacterObject.transform);
     }
 
     private void RevealAdjacentTilesToCharacters()
