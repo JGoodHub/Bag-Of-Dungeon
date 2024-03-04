@@ -14,5 +14,6 @@ public class CharacterData : ScriptableObject
     public int MaxCombatModifier;
     [Space]
     public GameObject CharacterPrefab;
+    public Sprite ProfilePicture;
 
 }

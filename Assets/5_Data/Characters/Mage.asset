@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 639300137b94545fd9d5e21bef9a699d, type: 3}
+  m_Name: Mage
+  m_EditorClassIdentifier: 
+  Class: Knight
+  MaxLives: 3
+  MaxHeath: 5
+  MaxActionPoints: 5
+  MaxCombatDice: 2
+  MaxCombatModifier: 4
+  CharacterPrefab: {fileID: 7029900957690620914, guid: 769b1a375153b413caf0ef6edc571d03, type: 3}
+  ProfilePicture: {fileID: 21300000, guid: 206fc12a4844541c392f6f8c44801077, type: 3}

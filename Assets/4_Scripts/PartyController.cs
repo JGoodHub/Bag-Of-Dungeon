@@ -38,6 +38,8 @@ public class PartyController : SceneSingleton<PartyController>
             characterEntity.Position = Vector3Int.zero;
         }
 
+        PartyPanel.Singleton.Initialise(_characterEntities);
+
         RevealAdjacentTilesToCharacters();
 
         RefreshMovementHandle();
