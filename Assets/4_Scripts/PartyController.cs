@@ -12,6 +12,10 @@ public class PartyController : SceneSingleton<PartyController>
 
     private List<CharacterEntity> _characterEntities = new List<CharacterEntity>();
 
+    private int _activeCharacterIndex;
+
+    public CharacterEntity ActiveCharacterEntity => _characterEntities[_activeCharacterIndex];
+
     private void Awake()
     {
         foreach (CharacterData partyCharacter in _partyCharacters)
@@ -28,8 +32,6 @@ public class PartyController : SceneSingleton<PartyController>
 
     public void Initialise()
     {
-        CharacterCanvas.Singleton.SetupForCharacter(_characterEntities[0]);
-
         foreach (CharacterEntity characterEntity in _characterEntities)
         {
             characterEntity.CharacterObject.transform.position = Vector3.zero;
@@ -38,13 +40,16 @@ public class PartyController : SceneSingleton<PartyController>
             characterEntity.Position = Vector3Int.zero;
         }
 
+        CharacterCanvas.Singleton.SetupForCharacter(ActiveCharacterEntity);
+
         PartyPanel.Singleton.Initialise(_characterEntities);
+        PartyPanel.Singleton.SetActiveCharacter(_activeCharacterIndex);
+
+        CameraController.Singleton.SetTrackingTarget(ActiveCharacterEntity.CharacterObject.transform);
 
         RevealAdjacentTilesToCharacters();
 
         RefreshMovementHandle();
-
-        CameraController.Singleton.SetTrackingTarget(_characterEntities[0].CharacterObject.transform);
     }
 
     private void RevealAdjacentTilesToCharacters()
@@ -70,22 +75,16 @@ public class PartyController : SceneSingleton<PartyController>
 
     private void RefreshMovementHandle()
     {
-        foreach (CharacterEntity characterEntity in _characterEntities)
-        {
-            if (IsCharacterOnEdge(characterEntity) == false)
-                continue;
+        List<bool> walkableDirections = DungeonController.Singleton.GetConnections(ActiveCharacterEntity.Position);
 
-            List<bool> walkableDirections = DungeonController.Singleton.GetConnections(characterEntity.Position);
-
-            MovementControls.Singleton.Setup(characterEntity.Position, walkableDirections);
-        }
+        MovementControls.Singleton.Setup(ActiveCharacterEntity.Position, walkableDirections);
     }
 
     public void MoveSelectedCharacter(MovementDirection movementDirection)
     {
-        Vector3Int nextPosition = GetNextPosition(_characterEntities[0].Position, movementDirection);
+        Vector3Int nextPosition = GetNextPosition(ActiveCharacterEntity.Position, movementDirection);
 
-        _characterEntities[0].HopToPosition(nextPosition);
+        ActiveCharacterEntity.HopToPosition(nextPosition);
 
         RevealAdjacentTilesToCharacters();
 
@@ -107,6 +106,20 @@ public class PartyController : SceneSingleton<PartyController>
             default:
                 return position;
         }
+    }
+
+    public void IncrementActiveCharacter()
+    {
+        _activeCharacterIndex++;
+        _activeCharacterIndex %= _characterEntities.Count;
+
+        CharacterCanvas.Singleton.SetupForCharacter(ActiveCharacterEntity);
+
+        PartyPanel.Singleton.SetActiveCharacter(_activeCharacterIndex);
+
+        CameraController.Singleton.SetTrackingTarget(ActiveCharacterEntity.CharacterObject.transform);
+
+        RefreshMovementHandle();
     }
 
 }

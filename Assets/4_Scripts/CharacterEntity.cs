@@ -34,8 +34,10 @@ public class CharacterEntity
 
     public void HopToPosition(Vector3Int position)
     {
+        _characterObject.transform.rotation = Quaternion.Euler(0f, Vector3.SignedAngle(Vector3.forward, position - Position, Vector3.up), 0f);
+
         Position = position;
-        _characterObject.transform.DOJump(position, 0.75f, 1, 0.4f);
+        _characterObject.transform.DOJump(position, 0.5f, 1, 0.35f);
     }
 
 }

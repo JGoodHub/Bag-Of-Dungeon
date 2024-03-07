@@ -18,7 +18,6 @@ public class PartyPanel : SceneSingleton<PartyPanel>
             Destroy(childTransform.gameObject);
         }
 
-
         foreach (CharacterEntity partyCharacterEntity in partyCharacterEntities)
         {
             PartyProfile characterProfile = Instantiate(_profileItem, _profilesContainer).GetComponent<PartyProfile>();
@@ -26,6 +25,16 @@ public class PartyPanel : SceneSingleton<PartyPanel>
 
             characterProfile.Initialise(partyCharacterEntity);
         }
+    }
+
+    public void SetActiveCharacter(int activeCharacterIndex)
+    {
+        foreach (PartyProfile partyProfile in _partyProfiles)
+        {
+            partyProfile.SetSelectedState(false);
+        }
+
+        _partyProfiles[activeCharacterIndex].SetSelectedState(true);
     }
 
 }
