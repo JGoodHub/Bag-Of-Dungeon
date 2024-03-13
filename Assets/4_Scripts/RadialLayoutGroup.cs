@@ -14,7 +14,7 @@ public class RadialLayoutGroup : MonoBehaviour
         RebuildLayout();
     }
 
-    private void RebuildLayout()
+    public void RebuildLayout()
     {
         if (transform.childCount == 0)
             return;

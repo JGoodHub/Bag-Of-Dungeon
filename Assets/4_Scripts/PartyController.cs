@@ -50,6 +50,8 @@ public class PartyController : SceneSingleton<PartyController>
         RevealAdjacentTilesToCharacters();
 
         RefreshMovementHandle();
+
+        HandleStackedCharacters();
     }
 
     private void RevealAdjacentTilesToCharacters()
@@ -89,6 +91,50 @@ public class PartyController : SceneSingleton<PartyController>
         RevealAdjacentTilesToCharacters();
 
         RefreshMovementHandle();
+
+        HandleStackedCharacters();
+    }
+
+    private void HandleStackedCharacters()
+    {
+        Dictionary<Vector3Int, List<CharacterEntity>> charactersByPosition = new Dictionary<Vector3Int, List<CharacterEntity>>();
+
+        foreach (CharacterEntity characterEntity in _characterEntities)
+        {
+            if (charactersByPosition.TryGetValue(characterEntity.Position, out List<CharacterEntity> entitiesList))
+            {
+                entitiesList.Add(characterEntity);
+            }
+            else
+            {
+                charactersByPosition.Add(characterEntity.Position, new List<CharacterEntity> { characterEntity });
+            }
+        }
+
+        foreach ((Vector3Int position, List<CharacterEntity> characters) in charactersByPosition)
+        {
+            if (characters.Count == 1)
+            {
+                characters[0].CharacterObject.SetActive(true);
+                continue;
+            }
+
+            foreach (CharacterEntity character in characters)
+            {
+                character.CharacterObject.SetActive(false);
+            }
+
+            if (characters.Contains(ActiveCharacterEntity))
+            {
+                ActiveCharacterEntity.CharacterObject.SetActive(true);
+            }
+            else
+            {
+                characters[0].CharacterObject.SetActive(true);
+            }
+        }
+
+        OverlayGraphicsController.Singleton.RefreshStackedCharacterOverlays(_characterEntities, ActiveCharacterEntity);
     }
 
     private Vector3Int GetNextPosition(Vector3Int position, MovementDirection direction)

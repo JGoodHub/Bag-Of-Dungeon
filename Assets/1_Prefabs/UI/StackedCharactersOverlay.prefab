@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 9051899271870887873}
   - component: {fileID: 6834935321331878972}
   m_Layer: 5
-  m_Name: StackedCharactersDisplay
+  m_Name: StackedCharactersOverlay
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -32,8 +32,8 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 1}
@@ -49,7 +49,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 41ca7e16e684d384ea9238ce73b49981, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _cellDegrees: 35
+  _cellDegrees: 34
   _radius: 250
 --- !u!114 &6834935321331878972
 MonoBehaviour:
@@ -63,5 +63,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7407f0b9f20bc4134a36818b9818c6f2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _iconsContainer: {fileID: 748402359607931168}
+  _iconsContainer: {fileID: 9051899271870887873}
   _iconPrefab: {fileID: 4005816103248843478, guid: 704b36c995f7f495d97ff148b46c95f3, type: 3}

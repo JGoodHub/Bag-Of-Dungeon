@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -5,6 +6,11 @@ using UnityEngine;
 [ExecuteInEditMode]
 public class StaticRotation : MonoBehaviour
 {
+
+    private void Awake()
+    {
+        transform.rotation = Quaternion.identity;
+    }
 
     private void Update()
     {

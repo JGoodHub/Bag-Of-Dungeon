@@ -4,13 +4,15 @@ using System.Collections.Generic;
 using GoodHub.Core.Runtime;
 using UnityEngine;
 
-public class StackCharactersOverlay : MonoBehaviour
+public class StackedCharactersOverlay : MonoBehaviour
 {
 
-    [SerializeField] private RectTransform _iconsContainer;
+    [SerializeField] private RadialLayoutGroup _iconsContainer;
     [SerializeField] private GameObject _iconPrefab;
 
     private Vector3Int _trackedTile;
+
+    public Vector3Int TrackedTile => _trackedTile;
 
     public void Initialise(List<CharacterEntity> stackedCharacters, Vector3Int position)
     {
@@ -21,9 +23,11 @@ public class StackCharactersOverlay : MonoBehaviour
 
         foreach (CharacterEntity stackedCharacter in stackedCharacters)
         {
-            StackCharacterIcon stackCharacterIcon = Instantiate(_iconPrefab, _iconsContainer).GetComponent<StackCharacterIcon>();
+            StackCharacterIcon stackCharacterIcon = Instantiate(_iconPrefab, _iconsContainer.transform).GetComponent<StackCharacterIcon>();
             stackCharacterIcon.SetAvatar(stackedCharacter.Data.ProfilePicture);
         }
+        
+        _iconsContainer.RebuildLayout();
 
         _trackedTile = position;
     }
