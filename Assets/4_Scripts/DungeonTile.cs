@@ -33,7 +33,7 @@ public class DungeonTile : MonoBehaviour
 
         _animRoot.gameObject.SetActive(true);
         _animRoot.localScale = Vector3.zero;
-        _animRoot.DOScale(Vector3.one, 0.5f).SetEase(Ease.OutBounce);
+        _animRoot.DOScale(Vector3.one, 0.3f).SetEase(Ease.OutBounce);
 
         _hidden = false;
     }

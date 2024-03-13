@@ -20,16 +20,17 @@ public class MovementControls : SceneSingleton<MovementControls>
             });
         }
 
-        Setup(Vector3Int.zero, new List<bool> { false, false, false, false });
+        Setup(Vector3Int.zero, new List<bool> { false, false, false, false }, true);
     }
 
-    public void Setup(Vector3Int position, List<bool> arrowStates)
+    public void Setup(Vector3Int position, List<bool> arrowStates, bool interactable)
     {
         transform.position = position;
 
         for (int i = 0; i < _handles.Count; i++)
         {
             _handles[i].gameObject.SetActive(arrowStates[i]);
+            _handles[i].SetInteractable(interactable);
         }
     }
 

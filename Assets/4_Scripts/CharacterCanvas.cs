@@ -18,6 +18,8 @@ public class CharacterCanvas : SceneSingleton<CharacterCanvas>
     [Header("Controls Bar")]
     [SerializeField] private Button _endTurnButton;
 
+    private CharacterEntity _characterEntity;
+
     private void Awake()
     {
         _endTurnButton.onClick.AddListener(EndTurnClicked);
@@ -28,19 +30,29 @@ public class CharacterCanvas : SceneSingleton<CharacterCanvas>
         PartyController.Singleton.IncrementActiveCharacter();
     }
 
-    public void SetupForCharacter(CharacterEntity characterEntity)
+    public void SetSourceCharacter(CharacterEntity characterEntity, bool displayImmediately)
     {
-        _classText.text = characterEntity.Data.Class;
+        _characterEntity = characterEntity;
 
-        _combatDiceText.text = $"{characterEntity.Data.MaxCombatDice} Dice + {characterEntity.Data.MaxCombatModifier}";
+        if (displayImmediately)
+        {
+            RefreshFields();
+        }
+    }
 
-        _livesTracker.SetActiveCount(characterEntity.Data.MaxLives);
-        _healthTracker.SetActiveCount(characterEntity.Data.MaxHeath);
-        _actionPointsTracker.SetActiveCount(characterEntity.Data.MaxActionPoints);
+    public void RefreshFields()
+    {
+        _classText.text = _characterEntity.Data.Class;
 
-        _livesTracker.SetUncrossedCount(characterEntity.CurrentLives);
-        _healthTracker.SetUncrossedCount(characterEntity.CurrentHeath);
-        _actionPointsTracker.SetUncrossedCount(characterEntity.CurrentActionPoints);
+        _combatDiceText.text = $"{_characterEntity.Data.MaxCombatDice} Dice + {_characterEntity.Data.MaxCombatModifier}";
+
+        _livesTracker.SetActiveCount(_characterEntity.Data.MaxLives);
+        _healthTracker.SetActiveCount(_characterEntity.Data.MaxHeath);
+        _actionPointsTracker.SetActiveCount(_characterEntity.Data.MaxActionPoints);
+
+        _livesTracker.SetUncrossedCount(_characterEntity.CurrentLives);
+        _healthTracker.SetUncrossedCount(_characterEntity.CurrentHeath);
+        _actionPointsTracker.SetUncrossedCount(_characterEntity.CurrentActionPoints);
     }
 
 }

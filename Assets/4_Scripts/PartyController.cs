@@ -40,7 +40,7 @@ public class PartyController : SceneSingleton<PartyController>
             characterEntity.Position = Vector3Int.zero;
         }
 
-        CharacterCanvas.Singleton.SetupForCharacter(ActiveCharacterEntity);
+        CharacterCanvas.Singleton.SetSourceCharacter(ActiveCharacterEntity, true);
 
         PartyPanel.Singleton.Initialise(_characterEntities);
         PartyPanel.Singleton.SetActiveCharacter(_activeCharacterIndex);
@@ -79,7 +79,8 @@ public class PartyController : SceneSingleton<PartyController>
     {
         List<bool> walkableDirections = DungeonController.Singleton.GetConnections(ActiveCharacterEntity.Position);
 
-        MovementControls.Singleton.Setup(ActiveCharacterEntity.Position, walkableDirections);
+        MovementControls.Singleton.Setup(ActiveCharacterEntity.Position, walkableDirections,
+            ActiveCharacterEntity.CurrentActionPoints > 0);
     }
 
     public void MoveSelectedCharacter(MovementDirection movementDirection)
@@ -87,6 +88,10 @@ public class PartyController : SceneSingleton<PartyController>
         Vector3Int nextPosition = GetNextPosition(ActiveCharacterEntity.Position, movementDirection);
 
         ActiveCharacterEntity.HopToPosition(nextPosition);
+
+        ActiveCharacterEntity.CurrentActionPoints--;
+
+        CharacterCanvas.Singleton.RefreshFields();
 
         RevealAdjacentTilesToCharacters();
 
@@ -159,7 +164,9 @@ public class PartyController : SceneSingleton<PartyController>
         _activeCharacterIndex++;
         _activeCharacterIndex %= _characterEntities.Count;
 
-        CharacterCanvas.Singleton.SetupForCharacter(ActiveCharacterEntity);
+        ActiveCharacterEntity.ResetActionPoints();
+
+        CharacterCanvas.Singleton.SetSourceCharacter(ActiveCharacterEntity, true);
 
         PartyPanel.Singleton.SetActiveCharacter(_activeCharacterIndex);
 

@@ -12,7 +12,7 @@ public class CharacterEntity
 
     public int CurrentHeath { get; }
 
-    public int CurrentActionPoints { get; }
+    public int CurrentActionPoints { get; set; }
 
     public GameObject CharacterObject => _characterObject;
 
@@ -38,6 +38,11 @@ public class CharacterEntity
 
         Position = position;
         _characterObject.transform.DOJump(position, 0.5f, 1, 0.35f);
+    }
+
+    public void ResetActionPoints()
+    {
+        CurrentActionPoints = Data.MaxActionPoints;
     }
 
 }

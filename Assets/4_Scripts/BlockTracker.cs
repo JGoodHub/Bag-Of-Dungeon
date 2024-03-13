@@ -34,7 +34,7 @@ public class BlockTracker : MonoBehaviour
     {
         for (int i = 0; i < _blockCounters.Count; i++)
         {
-            _blockCounters[i].SetCrossStatus(i > count);
+            _blockCounters[i].SetCrossStatus(i >= count);
         }
     }
 
