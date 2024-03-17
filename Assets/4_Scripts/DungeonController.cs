@@ -20,9 +20,9 @@ public class DungeonController : SceneSingleton<DungeonController>
 
     public void Initialise()
     {
-        _tileStack.Initialise(GameMaster.Seed);
+        _tileStack.Initialise(GameMaster.Singleton.Seed);
 
-        _dungeonGraph = DungeonGenerator.Singleton.GenerateDungeonGraph(GameMaster.Seed, _tileStack);
+        _dungeonGraph = DungeonGenerator.Singleton.GenerateDungeonGraph(GameMaster.Singleton.Seed, _tileStack);
 
         GameObject dungeonInstanceObject = new GameObject("DungeonInstance");
 
