@@ -8,7 +8,6 @@ public class DungeonController : SceneSingleton<DungeonController>
 
     [SerializeField] private TileStack _tileStack;
 
-
     private DungeonGraph _dungeonGraph;
 
     private DungeonTile _startTile;
@@ -17,6 +16,8 @@ public class DungeonController : SceneSingleton<DungeonController>
     private HashSet<DungeonTile> _revealedTiles = new HashSet<DungeonTile>();
 
     private Dictionary<Vector3Int, DungeonTile> _tilesByPosition = new Dictionary<Vector3Int, DungeonTile>();
+
+    public HashSet<DungeonTile> RevealedTiles => _revealedTiles;
 
     public void Initialise()
     {
@@ -28,19 +29,19 @@ public class DungeonController : SceneSingleton<DungeonController>
 
         foreach (DungeonNode node in _dungeonGraph.Nodes)
         {
-            GameObject tilePrefab = node.TileData.TilePrefab;
+            GameObject tilePrefab = node.VisualData.TilePrefab;
             DungeonTile dungeonTile = Instantiate(tilePrefab, dungeonInstanceObject.transform).GetComponent<DungeonTile>();
 
             dungeonTile.Initialise(node);
 
             _tilesByPosition.Add(node.Position, dungeonTile);
 
-            if (node.TileData.TileType == DungeonTileType.Start)
+            if (node.VisualData.TileType == DungeonTileType.Start)
             {
                 _startTile = dungeonTile;
             }
 
-            if (node.TileData.TileType == DungeonTileType.End)
+            if (node.VisualData.TileType == DungeonTileType.End)
             {
                 _endTile = dungeonTile;
             }
@@ -51,15 +52,14 @@ public class DungeonController : SceneSingleton<DungeonController>
 
     public DungeonTile GetTileAtPosition(Vector3Int position)
     {
-        return _tilesByPosition.TryGetValue(position, out DungeonTile tile) ? tile : null;
+        return _tilesByPosition.GetValueOrDefault(position);
     }
-
 
     public void HideAllTileExceptStart()
     {
         foreach (DungeonTile dungeonTile in _tilesByPosition.Values)
         {
-            if (dungeonTile.Node.TileData.TileType == DungeonTileType.Start)
+            if (dungeonTile.Node.VisualData.TileType == DungeonTileType.Start)
             {
                 dungeonTile.Reveal();
                 continue;
@@ -87,6 +87,7 @@ public class DungeonController : SceneSingleton<DungeonController>
                 continue;
 
             adjacentTile.Reveal();
+            _revealedTiles.Add(adjacentTile);
         }
     }
 

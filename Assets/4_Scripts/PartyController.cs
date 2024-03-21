@@ -49,6 +49,8 @@ public class PartyController : SceneSingleton<PartyController>
 
         RevealAdjacentTilesToCharacters();
 
+        MonsterController.Singleton.RefreshDetectedMonsters();
+
         RefreshMovementHandle();
 
         HandleStackedCharacters();
@@ -94,6 +96,8 @@ public class PartyController : SceneSingleton<PartyController>
         CharacterCanvas.Singleton.RefreshFields();
 
         RevealAdjacentTilesToCharacters();
+
+        MonsterController.Singleton.RefreshDetectedMonsters();
 
         RefreshMovementHandle();
 

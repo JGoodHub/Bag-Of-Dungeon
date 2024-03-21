@@ -11,11 +11,11 @@ public class DungeonGenerator : SceneSingleton<DungeonGenerator>
 {
 
     [SerializeField] private AnimationCurve _compactnessCurve;
-    [SerializeField] private List<DungeonTileData> _tiles;
+    [SerializeField] private List<DungeonTileVisualData> _tiles;
 
     private void Awake()
     {
-        foreach (DungeonTileData tile in _tiles)
+        foreach (DungeonTileVisualData tile in _tiles)
         {
             tile.Initialise();
         }
@@ -33,7 +33,9 @@ public class DungeonGenerator : SceneSingleton<DungeonGenerator>
 
         DungeonNode startNode = new DungeonNode
         {
-            TileData = GetDataForTileType(DungeonTileType.Start),
+            VisualData = GetDataForTileType(DungeonTileType.Start),
+            MetaData = TileStack.StartTileMetaData,
+            StateData = new DungeonNode.TileStateData(),
             Position = Vector3Int.zero,
             Rotation = 2
         };
@@ -49,8 +51,8 @@ public class DungeonGenerator : SceneSingleton<DungeonGenerator>
         {
             adjacencyDict = GetAdjacencyDict(dungeonGraph);
 
-            DungeonTileType peekedTileType = stack.PeekTile();
-            DungeonTileData peekedTileData = _tiles.Find(tile => tile.TileType == peekedTileType);
+            TileStack.MetaData peekedTile = stack.Peek();
+            DungeonTileVisualData peekedTileData = _tiles.Find(tile => tile.TileType == peekedTile.Type);
 
             // Check if theres a valid space for the tile
             List<Vector3Int> validSpaces = new List<Vector3Int>();
@@ -109,11 +111,13 @@ public class DungeonGenerator : SceneSingleton<DungeonGenerator>
             Vector3Int chosenSpace = validSpaces[chosenSpaceIndex];
 
             // Create the tile object
-            stack.PopTile();
+            TileStack.MetaData metaData = stack.Pop();
 
             DungeonNode newDungeonNode = new DungeonNode
             {
-                TileData = peekedTileData,
+                VisualData = peekedTileData,
+                MetaData = metaData,
+                StateData = new DungeonNode.TileStateData(),
                 Position = chosenSpace,
                 Rotation = validRotationsForValidSpaces[chosenSpace][random.Next(0, validRotationsForValidSpaces[chosenSpace].Count)]
             };
@@ -140,11 +144,11 @@ public class DungeonGenerator : SceneSingleton<DungeonGenerator>
         {
             byte tileInputsCode = (byte)GetTileInputsCodeForSpace(availableSpace, adjacencyDict);
 
-            DungeonTileData peekedTileData = GetBestTileForInputs(tileInputsCode, out int rotation);
+            DungeonTileVisualData peekedTileData = GetBestTileForInputs(tileInputsCode, out int rotation);
 
             DungeonNode newDungeonNode = new DungeonNode
             {
-                TileData = peekedTileData,
+                VisualData = peekedTileData,
                 Position = availableSpace,
                 Rotation = rotation
             };
@@ -189,16 +193,10 @@ public class DungeonGenerator : SceneSingleton<DungeonGenerator>
         return connectionsList;
     }
 
-    private DungeonTileData GetDataForTileType(DungeonTileType tileType)
+    private DungeonTileVisualData GetDataForTileType(DungeonTileType tileType)
     {
         return _tiles.Find(tile => tile.TileType == tileType);
     }
-
-    private GameObject GetPrefabForTileType(DungeonTileType tileType)
-    {
-        return _tiles.Find(tile => tile.TileType == tileType)?.TilePrefab;
-    }
-
 
     /// <summary>
     /// Returns a byte code representing which directions have a connection to another tile. <br/>
@@ -262,7 +260,7 @@ public class DungeonGenerator : SceneSingleton<DungeonGenerator>
         return inputCode;
     }
 
-    private DungeonTileData GetBestTileForInputs(byte connectionInputs, out int rotation)
+    private DungeonTileVisualData GetBestTileForInputs(byte connectionInputs, out int rotation)
     {
         List<DungeonTileType> validTypes = new List<DungeonTileType>
         {
@@ -275,7 +273,7 @@ public class DungeonGenerator : SceneSingleton<DungeonGenerator>
 
         foreach (DungeonTileType tileType in validTypes)
         {
-            DungeonTileData tileData = GetDataForTileType(tileType);
+            DungeonTileVisualData tileData = GetDataForTileType(tileType);
 
             for (int rotIndex = 0; rotIndex < 4; rotIndex++)
             {

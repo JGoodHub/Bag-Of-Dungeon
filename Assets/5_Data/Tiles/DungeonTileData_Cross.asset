@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7391de9006294fc8a80ae6f4ad6de2dc, type: 3}
   m_Name: DungeonTileData_Cross
   m_EditorClassIdentifier: 
-  DungeonTileType: 5
-  ConnectionCodeString: 1111
+  TileType: 5
+  OutputsCodeString: 1111
   TilePrefab: {fileID: 6769075404384376760, guid: 2f002e6ad0ef247a6beef38039719a2b, type: 3}

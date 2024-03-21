@@ -3,11 +3,11 @@ using UnityEngine;
 using UnityEngine.Serialization;
 
 [CreateAssetMenu(fileName = "DungeonTileData", menuName = "BagOfDungeon/Create Dungeon Tile Data")]
-public class DungeonTileData : ScriptableObject
+public class DungeonTileVisualData : ScriptableObject
 {
 
-    [FormerlySerializedAs("DungeonTileType")] public DungeonTileType TileType;
-    [FormerlySerializedAs("ConnectionCodeString")] public string OutputsCodeString = "0000";
+    public DungeonTileType TileType;
+    public string OutputsCodeString = "0000";
     public GameObject TilePrefab;
 
     private byte OutputsCode = 0b0000_0000;

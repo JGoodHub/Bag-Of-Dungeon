@@ -37,12 +37,12 @@ public class DungeonGraph
 
     public DungeonNode GetStartNode()
     {
-        return Nodes.FirstOrDefault(node => node.TileData.TileType == DungeonTileType.Start);
+        return Nodes.FirstOrDefault(node => node.VisualData.TileType == DungeonTileType.Start);
     }
 
     public DungeonNode GetEndNode()
     {
-        return Nodes.FirstOrDefault(node => node.TileData.TileType == DungeonTileType.End);
+        return Nodes.FirstOrDefault(node => node.VisualData.TileType == DungeonTileType.End);
     }
 
     public DungeonNode GetRandomNode()
@@ -125,14 +125,28 @@ public class DungeonGraph
 public class DungeonNode
 {
 
-    public DungeonTileData TileData;
+    public class TileStateData
+    {
+
+        public bool MonsterDetected;
+        public bool MonsterRevealed;
+
+    }
+
+    public DungeonTileVisualData VisualData;
+
+    public TileStack.MetaData MetaData;
+
+    public TileStateData StateData;
+
+    // TODO Move to state data
     public Vector3Int Position;
     public int Rotation;
 
     public List<Vector3Int> GetOutputSpaces()
     {
         List<Vector3Int> outputSpaces = new List<Vector3Int>();
-        byte rotatedOutputsCode = TileData.GetRotatedOutputsCode(Rotation);
+        byte rotatedOutputsCode = VisualData.GetRotatedOutputsCode(Rotation);
 
         for (int rotIndex = 0; rotIndex < 4; rotIndex++)
         {
@@ -153,7 +167,7 @@ public class DungeonNode
     public List<bool> GetConnections()
     {
         List<bool> connections = new List<bool>();
-        byte rotatedOutputsCode = TileData.GetRotatedOutputsCode(Rotation);
+        byte rotatedOutputsCode = VisualData.GetRotatedOutputsCode(Rotation);
 
         for (int rotIndex = 0; rotIndex < 4; rotIndex++)
         {
